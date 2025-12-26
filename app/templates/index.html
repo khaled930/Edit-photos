@@ -9,15 +9,123 @@
 
 <h1>Image Editing Platform</h1>
 
+<!-- Upload -->
 <form action="/upload" method="post" enctype="multipart/form-data">
     <input type="file" name="file" accept="image/*" required>
     <button type="submit">Upload Image</button>
 </form>
 
 {% if image_url %}
-    <h2>Uploaded Image</h2>
-    <img src="{{ image_url }}" class="preview">
+<hr>
+
+<h2>Crop Image (Professional Mode)</h2>
+
+<!-- إطار القص -->
+<div id="crop-frame">
+    <img id="image" src="{{ image_url }}">
+</div>
+
+<br>
+
+<!-- Zoom -->
+<label>Zoom</label><br>
+<input type="range" id="zoom" min="0.5" max="3" step="0.05" value="1">
+
+<br><br>
+
+<!-- Rotate -->
+<form action="/rotate" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <select name="angle">
+        <option value="90">90°</option>
+        <option value="180">180°</option>
+        <option value="270">270°</option>
+    </select>
+    <button type="submit">Rotate</button>
+</form>
+
+<button onclick="submitCrop()">Crop</button>
+
+<a href="{{ image_url }}" download>
+    <button>Save Image</button>
+</a>
+
+<!-- Hidden crop form -->
+<form id="crop-form" action="/crop" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <input type="hidden" name="x" id="x">
+    <input type="hidden" name="y" id="y">
+    <input type="hidden" name="width" id="width">
+    <input type="hidden" name="height" id="height">
+</form>
 {% endif %}
+
+<script>
+const img = document.getElementById("image");
+const frame = document.getElementById("crop-frame");
+const zoomSlider = document.getElementById("zoom");
+
+let scale = 1;
+let posX = 0;
+let posY = 0;
+let dragging = false;
+let startX, startY;
+
+if (img) {
+
+    zoomSlider.addEventListener("input", () => {
+        scale = parseFloat(zoomSlider.value);
+        updateTransform();
+    });
+
+    img.addEventListener("mousedown", (e) => {
+        dragging = true;
+        startX = e.clientX - posX;
+        startY = e.clientY - posY;
+        img.style.cursor = "grabbing";
+    });
+
+    document.addEventListener("mouseup", () => {
+        dragging = false;
+        img.style.cursor = "grab";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        posX = e.clientX - startX;
+        posY = e.clientY - startY;
+        updateTransform();
+    });
+}
+
+function updateTransform() {
+    img.style.transform = `
+        translate(-50%, -50%)
+        translate(${posX}px, ${posY}px)
+        scale(${scale})
+    `;
+}
+
+function submitCrop() {
+    const frameRect = frame.getBoundingClientRect();
+    const imgRect = img.getBoundingClientRect();
+
+    const scaleX = img.naturalWidth / imgRect.width;
+    const scaleY = img.naturalHeight / imgRect.height;
+
+    const x = (frameRect.left - imgRect.left) * scaleX;
+    const y = (frameRect.top - imgRect.top) * scaleY;
+    const width = frameRect.width * scaleX;
+    const height = frameRect.height * scaleY;
+
+    document.getElementById("x").value = Math.max(0, Math.round(x));
+    document.getElementById("y").value = Math.max(0, Math.round(y));
+    document.getElementById("width").value = Math.round(width);
+    document.getElementById("height").value = Math.round(height);
+
+    document.getElementById("crop-form").submit();
+}
+</script>
 
 </body>
 </html>
