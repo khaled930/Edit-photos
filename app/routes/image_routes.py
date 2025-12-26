@@ -1,21 +1,37 @@
 from fastapi import APIRouter, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from app.services.image_service import crop_image
-from app.services.image_service import save_image, rotate_image
+
+from app.services.image_service import (
+    save_image,
+    rotate_image,
+    crop_image
+)
+from app.services.compression_service import compress_jpeg
+
+import os
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
+# =========================
+# Editor Page
+# =========================
 @router.get("/editor", response_class=HTMLResponse)
 def editor_page(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "image_url": None}
+        {
+            "request": request,
+            "image_url": None
+        }
     )
 
 
+# =========================
+# Upload Image
+# =========================
 @router.post("/upload", response_class=HTMLResponse)
 async def upload_image(
     request: Request,
@@ -32,6 +48,9 @@ async def upload_image(
     )
 
 
+# =========================
+# Rotate Image
+# =========================
 @router.post("/rotate", response_class=HTMLResponse)
 def rotate(
     request: Request,
@@ -47,7 +66,11 @@ def rotate(
             "image_url": new_image
         }
     )
-    
+
+
+# =========================
+# Crop Image
+# =========================
 @router.post("/crop", response_class=HTMLResponse)
 def crop(
     request: Request,
@@ -66,4 +89,46 @@ def crop(
             "image_url": new_image
         }
     )
-   
+
+
+# =========================
+# JPEG Compression
+# =========================
+@router.post("/compress", response_class=HTMLResponse)
+def compress_image(
+    request: Request,
+    image_url: str = Form(...),
+    quality: int = Form(...)
+):
+    # تحويل URL إلى مسار فعلي في النظام
+    input_path = "app/static" + image_url
+    filename = os.path.basename(input_path)
+
+    # مجلد الصور المضغوطة
+    output_dir = "app/static/uploads/compressed"
+    os.makedirs(output_dir, exist_ok=True)
+
+    output_path = os.path.join(
+        output_dir,
+        f"compressed_{filename}"
+    )
+
+    # تنفيذ ضغط JPEG
+    stats = compress_jpeg(
+        input_path=input_path,
+        output_path=output_path,
+        quality=quality
+    )
+
+    # URL النهائي للصورة المضغوطة
+    compressed_url = "/uploads/compressed/" + f"compressed_{filename}"
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "image_url": image_url,
+            "compressed_url": compressed_url,
+            "stats": stats
+        }
+    )
