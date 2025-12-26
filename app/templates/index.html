@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Editor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1>Image Editing Platform</h1>
+
+<form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/*" required>
+    <button type="submit">Upload Image</button>
+</form>
+
+{% if image_url %}
+    <h2>Uploaded Image</h2>
+    <img src="{{ image_url }}" class="preview">
+{% endif %}
+
+</body>
+</html>
