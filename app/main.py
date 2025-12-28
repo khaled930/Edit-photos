@@ -7,7 +7,6 @@ app = FastAPI(title="Image Editing Platform")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="app/static/uploads"), name="uploads")
-
 app.include_router(image_router)
 
 

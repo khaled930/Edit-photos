@@ -7,6 +7,14 @@ from app.services.image_service import (
     rotate_image,
     crop_image
 )
+from app.services.image_enhancement_service import (
+    adjust_brightness,
+    adjust_contrast,
+    sharpen_image,
+    smooth_image,
+    generate_histogram
+)
+
 from app.services.compression_service import compress_jpeg
 
 import os
@@ -130,5 +138,81 @@ def compress_image(
             "image_url": image_url,
             "compressed_url": compressed_url,
             "stats": stats
+        }
+    )
+
+
+
+@router.post("/brightness", response_class=HTMLResponse)
+def brightness(
+    request: Request,
+    image_url: str = Form(...),
+    factor: float = Form(...)
+):
+    new_image = adjust_brightness(image_url, factor)
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "image_url": new_image
+        }
+    )
+@router.post("/contrast", response_class=HTMLResponse)
+def contrast(
+    request: Request,
+    image_url: str = Form(...),
+    factor: float = Form(...)
+):
+    new_image = adjust_contrast(image_url, factor)
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "image_url": new_image
+        }
+    )
+@router.post("/sharpen", response_class=HTMLResponse)
+def sharpen(
+    request: Request,
+    image_url: str = Form(...)
+):
+    new_image = sharpen_image(image_url)
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "image_url": new_image
+        }
+    )
+@router.post("/smooth", response_class=HTMLResponse)
+def smooth(
+    request: Request,
+    image_url: str = Form(...)
+):
+    new_image = smooth_image(image_url)
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "image_url": new_image
+        }
+    )
+@router.post("/histogram", response_class=HTMLResponse)
+def histogram(
+    request: Request,
+    image_url: str = Form(...)
+):
+    histogram_image = generate_histogram(image_url)
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "image_url": image_url,
+            "histogram_url": histogram_image
         }
     )

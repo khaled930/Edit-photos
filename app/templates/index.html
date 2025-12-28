@@ -9,6 +9,7 @@
 
 <h1>Image Editing Platform</h1>
 
+<!-- Upload -->
 <form action="/upload" method="post" enctype="multipart/form-data">
     <input type="file" name="file" accept="image/*" required>
     <button type="submit">Upload Image</button>
@@ -17,9 +18,11 @@
 {% if image_url %}
 <hr>
 
+<!-- ===================== -->
+<!-- Crop Section -->
+<!-- ===================== -->
 <h2>Crop Image (Editable Box)</h2>
 
-<!-- إطار القص -->
 <div id="crop-frame">
     <img id="image" src="{{ image_url }}">
 
@@ -58,24 +61,71 @@
     <input type="hidden" name="height" id="height">
 </form>
 
+<!-- ===================== -->
+<!-- Image Enhancement (✔️ المكان الصحيح) -->
+<!-- ===================== -->
 <hr>
+<h2>Image Enhancement</h2>
 
+<!-- Brightness -->
+<form action="/brightness" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <label>Brightness</label><br>
+    <input type="range" name="factor" min="0.2" max="2" step="0.1" value="1">
+    <button type="submit">Apply</button>
+</form>
+
+<br>
+
+<!-- Contrast -->
+<form action="/contrast" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <label>Contrast</label><br>
+    <input type="range" name="factor" min="0.2" max="2" step="0.1" value="1">
+    <button type="submit">Apply</button>
+</form>
+
+<br>
+
+<form action="/sharpen" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <button type="submit">Sharpen</button>
+</form>
+
+<form action="/smooth" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <button type="submit">Smooth</button>
+</form>
+
+<br><br>
+
+<form action="/histogram" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <button type="submit">Show Histogram</button>
+</form>
+
+{% if histogram_url %}
+<br>
+<h3>Histogram</h3>
+<img src="{{ histogram_url }}" style="max-width:400px; border:1px solid #ccc;">
+{% endif %}
+
+<!-- ===================== -->
 <!-- JPEG Compression -->
+<!-- ===================== -->
+<hr>
 <h2>JPEG Compression</h2>
 
 <form action="/compress" method="post">
     <input type="hidden" name="image_url" value="{{ image_url }}">
-
     <label>Compression Quality (1 - 95)</label><br>
     <input type="number" name="quality" value="70" min="1" max="95" required>
-
     <br><br>
     <button type="submit">Compress Image</button>
 </form>
 
 {% if compressed_url %}
 <hr>
-
 <h3>Compressed Result</h3>
 
 <p>
@@ -93,6 +143,9 @@
 
 {% endif %}
 
+<!-- ===================== -->
+<!-- Crop Script -->
+<!-- ===================== -->
 <script>
 const cropBox = document.getElementById("crop-box");
 const img = document.getElementById("image");
@@ -101,7 +154,6 @@ let startX, startY, mode;
 let box = {};
 const MIN_SIZE = 40;
 
-/* ===== Enable Crop ===== */
 function enableCrop() {
     cropBox.style.display = "block";
     cropBox.style.left = "50px";
@@ -110,10 +162,8 @@ function enableCrop() {
     cropBox.style.height = "150px";
 }
 
-/* ===== Mouse Down ===== */
 cropBox.addEventListener("mousedown", e => {
     e.preventDefault();
-
     mode = e.target.classList.contains("handle")
         ? e.target.classList[1]
         : "move";
@@ -132,7 +182,6 @@ cropBox.addEventListener("mousedown", e => {
     document.addEventListener("mouseup", stop);
 });
 
-/* ===== Resize / Move ===== */
 function resize(e) {
     let dx = e.clientX - startX;
     let dy = e.clientY - startY;
@@ -165,13 +214,11 @@ function resize(e) {
     cropBox.style.height = h + "px";
 }
 
-/* ===== Stop ===== */
 function stop() {
     document.removeEventListener("mousemove", resize);
     document.removeEventListener("mouseup", stop);
 }
 
-/* ===== Submit Crop ===== */
 function submitCrop() {
     const imgRect = img.getBoundingClientRect();
     const boxRect = cropBox.getBoundingClientRect();
