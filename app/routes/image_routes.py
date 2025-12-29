@@ -32,7 +32,8 @@ def editor_page(request: Request):
         "index.html",
         {
             "request": request,
-            "image_url": None
+            "image_url": None,
+            "edited_url": None
         }
     )
 
@@ -51,7 +52,8 @@ async def upload_image(
         "index.html",
         {
             "request": request,
-            "image_url": image_path
+            "image_url": image_path,   # Before
+            "edited_url": None         # After → فارغة قبل أي تعديل
         }
     )
 
@@ -71,7 +73,8 @@ def rotate(
         "index.html",
         {
             "request": request,
-            "image_url": new_image
+            "image_url": image_url,   # قبل التدوير
+            "edited_url": new_image   # بعد التدوير
         }
     )
 
@@ -94,7 +97,8 @@ def crop(
         "index.html",
         {
             "request": request,
-            "image_url": new_image
+            "image_url": image_url,   # الصورة الأصلية
+            "edited_url": new_image   # الصورة بعد القص
         }
     )
 
@@ -104,15 +108,13 @@ def crop(
 # =========================
 @router.post("/compress", response_class=HTMLResponse)
 def compress_image(
-    request: Request,
+    request: Request,س
     image_url: str = Form(...),
     quality: int = Form(...)
 ):
-    # تحويل URL إلى مسار فعلي في النظام
     input_path = "app/static" + image_url
     filename = os.path.basename(input_path)
 
-    # مجلد الصور المضغوطة
     output_dir = "app/static/uploads/compressed"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -121,28 +123,29 @@ def compress_image(
         f"compressed_{filename}"
     )
 
-    # تنفيذ ضغط JPEG
     stats = compress_jpeg(
         input_path=input_path,
         output_path=output_path,
         quality=quality
     )
 
-    # URL النهائي للصورة المضغوطة
     compressed_url = "/uploads/compressed/" + f"compressed_{filename}"
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "image_url": image_url,
-            "compressed_url": compressed_url,
+            "image_url": image_url,        # Before
+            "edited_url": compressed_url,  # After
             "stats": stats
         }
     )
 
 
 
+# =========================
+# Brightness
+# =========================
 @router.post("/brightness", response_class=HTMLResponse)
 def brightness(
     request: Request,
@@ -155,9 +158,15 @@ def brightness(
         "index.html",
         {
             "request": request,
-            "image_url": new_image
+            "image_url": image_url,   # Before
+            "edited_url": new_image   # After
         }
     )
+
+
+# =========================
+# Contrast
+# =========================
 @router.post("/contrast", response_class=HTMLResponse)
 def contrast(
     request: Request,
@@ -170,9 +179,15 @@ def contrast(
         "index.html",
         {
             "request": request,
-            "image_url": new_image
+            "image_url": image_url,
+            "edited_url": new_image
         }
     )
+
+
+# =========================
+# Sharpen
+# =========================
 @router.post("/sharpen", response_class=HTMLResponse)
 def sharpen(
     request: Request,
@@ -184,9 +199,15 @@ def sharpen(
         "index.html",
         {
             "request": request,
-            "image_url": new_image
+            "image_url": image_url,
+            "edited_url": new_image
         }
     )
+
+
+# =========================
+# Smooth
+# =========================
 @router.post("/smooth", response_class=HTMLResponse)
 def smooth(
     request: Request,
@@ -198,9 +219,15 @@ def smooth(
         "index.html",
         {
             "request": request,
-            "image_url": new_image
+            "image_url": image_url,
+            "edited_url": new_image
         }
     )
+
+
+# =========================
+# Histogram
+# =========================
 @router.post("/histogram", response_class=HTMLResponse)
 def histogram(
     request: Request,
@@ -213,6 +240,7 @@ def histogram(
         {
             "request": request,
             "image_url": image_url,
+            "edited_url": None,
             "histogram_url": histogram_image
         }
     )

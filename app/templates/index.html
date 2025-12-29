@@ -7,64 +7,26 @@
 </head>
 <body>
 
-<h1>Image Editing Platform</h1>
+<h1 >Image Editing Platform</h1>
 
-<!-- Upload -->
 <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" accept="image/*" required>
+    <!-- <input type="file" name="file" accept="image/*" required> -->
+    <input type="file" id="fileInput" name="file" accept="image/*" required>
+
     <button type="submit">Upload Image</button>
 </form>
 
-{% if image_url %}
-<hr>
-
-<!-- ===================== -->
-<!-- Crop Section -->
-<!-- ===================== -->
-<h2>Crop Image (Editable Box)</h2>
-
-<div id="crop-frame">
-    <img id="image" src="{{ image_url }}">
-
-    <div id="crop-box" style="display:none;">
-        <span class="handle tl"></span>
-        <span class="handle tm"></span>
-        <span class="handle tr"></span>
-        <span class="handle ml"></span>
-        <span class="handle mr"></span>
-        <span class="handle bl"></span>
-        <span class="handle bm"></span>
-        <span class="handle br"></span>
-    </div>
+<div class="tools">
+    <button onclick="openPopup('save')">Save</button>
+    <button onclick="openPopup('improve')">Improve</button>
+    <button onclick="openPopup('compression')">Compression</button>
+    <button onclick="openPopup('edit')">Edit</button>
 </div>
 
-<br>
+<!-- الواجهات العائمة لكل زر -->
 
-<button onclick="enableCrop()">Crop Mode</button>
-<button onclick="submitCrop()">Save Crop</button>
-
-<form action="/rotate" method="post" style="display:inline;">
-    <input type="hidden" name="image_url" value="{{ image_url }}">
-    <select name="angle">
-        <option value="90">90°</option>
-        <option value="180">180°</option>
-        <option value="270">270°</option>
-    </select>
-    <button type="submit">Rotate</button>
-</form>
-
-<form id="crop-form" action="/crop" method="post">
-    <input type="hidden" name="image_url" value="{{ image_url }}">
-    <input type="hidden" name="x" id="x">
-    <input type="hidden" name="y" id="y">
-    <input type="hidden" name="width" id="width">
-    <input type="hidden" name="height" id="height">
-</form>
-
-<!-- ===================== -->
-<!-- Image Enhancement (✔️ المكان الصحيح) -->
-<!-- ===================== -->
-<hr>
+<div class="popup" id="improve">
+    <span class="close" onclick="closePopup()">×</span>
 <h2>Image Enhancement</h2>
 
 <!-- Brightness -->
@@ -109,23 +71,28 @@
 <h3>Histogram</h3>
 <img src="{{ histogram_url }}" style="max-width:400px; border:1px solid #ccc;">
 {% endif %}
+<br><br>
+<button class="save-btn" onclick="saveChanges('improve')">Save</button>
 
-<!-- ===================== -->
-<!-- JPEG Compression -->
-<!-- ===================== -->
-<hr>
-<h2>JPEG Compression</h2>
+</div>
+
+<div class="popup" id="compression">
+    <span class="close" onclick="closePopup()">×</span>
+    <h2>JPEG Compression</h2>
 
 <form action="/compress" method="post">
     <input type="hidden" name="image_url" value="{{ image_url }}">
+
     <label>Compression Quality (1 - 95)</label><br>
     <input type="number" name="quality" value="70" min="1" max="95" required>
+
     <br><br>
     <button type="submit">Compress Image</button>
 </form>
 
 {% if compressed_url %}
 <hr>
+
 <h3>Compressed Result</h3>
 
 <p>
@@ -136,108 +103,89 @@
 
 <img src="{{ compressed_url }}" style="max-width:400px; border:1px solid #ccc;"><br><br>
 
-<a href="{{ compressed_url }}" download>
+<!-- <a href="{{ compressed_url }}" download>
     <button>Download Compressed Image</button>
-</a>
+</a> -->
 {% endif %}
 
-{% endif %}
+<button class="save-btn" onclick="saveChanges('compression')">Save</button>
 
-<!-- ===================== -->
-<!-- Crop Script -->
-<!-- ===================== -->
-<script>
-const cropBox = document.getElementById("crop-box");
-const img = document.getElementById("image");
+</div>
 
-let startX, startY, mode;
-let box = {};
-const MIN_SIZE = 40;
+<div class="popup" id="edit">
+    <span class="close" onclick="closePopup()">×</span>
+    <h2>Crop Image (Editable Box)</h2>
 
-function enableCrop() {
-    cropBox.style.display = "block";
-    cropBox.style.left = "50px";
-    cropBox.style.top = "50px";
-    cropBox.style.width = "200px";
-    cropBox.style.height = "150px";
-}
+<!-- إطار القص -->
+<div id="crop-frame">
+    <img id="image" src="{{ image_url }}">
 
-cropBox.addEventListener("mousedown", e => {
-    e.preventDefault();
-    mode = e.target.classList.contains("handle")
-        ? e.target.classList[1]
-        : "move";
+    <div id="crop-box" style="display:none;">
+        <span class="handle tl"></span>
+        <span class="handle tm"></span>
+        <span class="handle tr"></span>
+        <span class="handle ml"></span>
+        <span class="handle mr"></span>
+        <span class="handle bl"></span>
+        <span class="handle bm"></span>
+        <span class="handle br"></span>
+    </div>
+</div>
 
-    startX = e.clientX;
-    startY = e.clientY;
+<br>
 
-    box = {
-        x: cropBox.offsetLeft,
-        y: cropBox.offsetTop,
-        w: cropBox.offsetWidth,
-        h: cropBox.offsetHeight
-    };
+<button onclick="enableCrop()">Crop Mode</button>
+<button onclick="submitCrop()">Save Crop</button>
 
-    document.addEventListener("mousemove", resize);
-    document.addEventListener("mouseup", stop);
-});
+<form action="/rotate" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <select name="angle">
+        <option value="90">90°</option>
+        <option value="180">180°</option>
+        <option value="270">270°</option>
+    </select>
+    <button type="submit">Rotate</button>
+</form>
 
-function resize(e) {
-    let dx = e.clientX - startX;
-    let dy = e.clientY - startY;
 
-    let x = box.x;
-    let y = box.y;
-    let w = box.w;
-    let h = box.h;
+<form id="crop-form" action="/crop" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <input type="hidden" name="x" id="x">
+    <input type="hidden" name="y" id="y">
+    <input type="hidden" name="width" id="width">
+    <input type="hidden" name="height" id="height">
+</form>
+<br>
+<button class="save-btn" onclick="saveChanges('edit')">Save</button>
 
-    if (mode === "move") {
-        x += dx;
-        y += dy;
-    }
+</div>
 
-    if (mode.includes("r")) w = Math.max(MIN_SIZE, box.w + dx);
-    if (mode.includes("l")) {
-        w = Math.max(MIN_SIZE, box.w - dx);
-        x = box.x + dx;
-    }
+<hr>
+<!-- مقارنة قبل/بعد -->
+<!-- مقارنة قبل/بعد -->
+<div id="compare-container">
 
-    if (mode.includes("b")) h = Math.max(MIN_SIZE, box.h + dy);
-    if (mode.includes("t")) {
-        h = Math.max(MIN_SIZE, box.h - dy);
-        y = box.y + dy;
-    }
+    <!-- الصورة الأصلية -->
+    <div class="compare-box">
+        <h3>Before</h3>
+        <img id="before-img" src="{{ image_url }}" alt="Before Image">
+    </div>
 
-    cropBox.style.left = x + "px";
-    cropBox.style.top = y + "px";
-    cropBox.style.width = w + "px";
-    cropBox.style.height = h + "px";
-}
+    <!-- الصورة بعد التعديل (فارغة قبل أي تعديل) -->
+    <div class="compare-box">
+        <h3>After</h3>
 
-function stop() {
-    document.removeEventListener("mousemove", resize);
-    document.removeEventListener("mouseup", stop);
-}
+        {% if edited_url %}
+            <img id="after-img" src="{{ edited_url }}" alt="After Image">
+        {% else %}
+            <div id="empty-after">No changes yet</div>
+        {% endif %}
+    </div>
 
-function submitCrop() {
-    const imgRect = img.getBoundingClientRect();
-    const boxRect = cropBox.getBoundingClientRect();
+</div>
 
-    const scaleX = img.naturalWidth / imgRect.width;
-    const scaleY = img.naturalHeight / imgRect.height;
-
-    document.getElementById("x").value =
-        Math.round((boxRect.left - imgRect.left) * scaleX);
-    document.getElementById("y").value =
-        Math.round((boxRect.top - imgRect.top) * scaleY);
-    document.getElementById("width").value =
-        Math.round(boxRect.width * scaleX);
-    document.getElementById("height").value =
-        Math.round(boxRect.height * scaleY);
-
-    document.getElementById("crop-form").submit();
-}
-</script>
+<script src="/static/script.js"></script>
 
 </body>
 </html>
+

@@ -6,19 +6,80 @@
 }
 
 /* ===== الصفحة العامة ===== */
+
 body {
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+    /* background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+    background-image: url('/static/imgs/img2.jpeg'); */
+      background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), 
+                url('/static/imgs/img2.jpeg');
+    
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     min-height: 100vh;
     text-align: center;
     color: #333;
     padding: 20px;
 }
 
+/* ===== tools ===== */
+.tools {
+    display: flex;
+    width: 100%;
+}
+
+.tools button {
+    flex: 1;
+    background-color: #5dade2;
+    border: none;
+    color: white; 
+    padding: 15px 0;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.tools button:hover {
+    background-color: #21618c; 
+}
+
+/* CSS موجود للأزرار */
+.tools button {
+    flex: 1;
+    background-color: #5dade2;
+    color: white;
+    padding: 15px 0;
+}
+
+/* CSS جديد للواجهات العائمة فقط */
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    width: 900px;      /* عرض الواجهة */
+    height: 730px;     /* ارتفاع الواجهة */
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    z-index: 1000;
+}
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
 /* ===== العنوان ===== */
 h1 {
     margin-bottom: 20px;
-    color: #2c3e50;
+    color: #122231;
     font-size: 32px;
 }
 
@@ -79,6 +140,21 @@ a button {
 a button:hover {
     background: #27ae60;
 }
+.save-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}س
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
 
 /* ===== Select ===== */
 select {
@@ -169,17 +245,59 @@ input[type="hidden"] {
 }
 
 .handle {
-    display: none;
     width: 12px;
     height: 12px;
     background: white;
     border: 2px solid #00aaff;
     position: absolute;
+    display: block;   /* ← عرض المقبض */
 }
+
 
 .tl { top: -6px; left: -6px; cursor: nwse-resize; }
 .tr { top: -6px; right: -6px; cursor: nesw-resize; }
 .bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
 .br { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+/* ====== Before / After Compare Box ====== */
+
+#compare-container {
+    width: 90%;
+    margin: 40px auto;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+.compare-box {
+    flex: 1;
+    text-align: center;
+    color: white;
+}
+
+.compare-box img {
+    max-width: 100%;
+    border-radius: 10px;
+    border: 2px solid #aaa;
+}
+
+#empty-after {
+    width: 100%;
+    padding: 50px 0;
+    border: 2px dashed #777;
+    border-radius: 10px;
+    color: #ccc;
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+
+
+
+
 
 
