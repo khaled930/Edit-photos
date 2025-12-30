@@ -108,7 +108,7 @@ def crop(
 # =========================
 @router.post("/compress", response_class=HTMLResponse)
 def compress_image(
-    request: Request,س
+    request: Request,
     image_url: str = Form(...),
     quality: int = Form(...)
 ):
