@@ -2,286 +2,187 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProEdit - Professional Image Editor</title>
+    <title>Image Editor</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="container">
-    <header class="header">
-        <div class="logo">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <rect width="32" height="32" rx="8" fill="url(#gradient1)"/>
-                <path d="M8 12L16 8L24 12V20L16 24L8 20V12Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-                <defs>
-                    <linearGradient id="gradient1" x1="0" y1="0" x2="32" y2="32">
-                        <stop offset="0%" stop-color="#0EA5E9"/>
-                        <stop offset="100%" stop-color="#10B981"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-            <h1>ProEdit</h1>
-        </div>
-        <div class="header-subtitle">Professional Image Editor</div>
-    </header>
+<h1 >Image Editing Platform</h1>
 
-    <div class="upload-section">
-        <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
-            <div class="upload-area" id="uploadArea">
-                <input type="file" id="fileInput" name="file" accept="image/*" required hidden>
-                <svg class="upload-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h3>Drop your image here</h3>
-                <p>or click to browse</p>
-                <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">
-                    Select Image
-                </button>
-            </div>
-        </form>
+<form action="/upload" method="post" enctype="multipart/form-data">
+    <!-- <input type="file" name="file" accept="image/*" required> -->
+    <input type="file" id="fileInput" name="file" accept="image/*" required>
+
+    <button type="submit">Upload Image</button>
+</form>
+
+<div class="tools">
+    <button onclick="openPopup('save')">Save</button>
+    <button onclick="openPopup('improve')">Improve</button>
+    <button onclick="openPopup('compression')">Compression</button>
+    <button onclick="openPopup('edit')">Edit</button>
+</div>
+
+<!-- الواجهات العائمة لكل زر -->
+
+<div class="popup" id="improve">
+    <span class="close" onclick="closePopup()">×</span>
+<h2>Image Enhancement</h2>
+
+<!-- Brightness -->
+<form action="/brightness" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <label>Brightness</label><br>
+    <input type="range" name="factor" min="0.2" max="2" step="0.1" value="1">
+    <button type="submit">Apply</button>
+</form>
+
+<br>
+
+<!-- Contrast -->
+<form action="/contrast" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <label>Contrast</label><br>
+    <input type="range" name="factor" min="0.2" max="2" step="0.1" value="1">
+    <button type="submit">Apply</button>
+</form>
+
+<br>
+
+<form action="/sharpen" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <button type="submit">Sharpen</button>
+</form>
+
+<form action="/smooth" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <button type="submit">Smooth</button>
+</form>
+
+<br><br>
+
+
+<form action="/histogram" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <button type="submit">Show Histogram</button>
+</form>
+
+{% if histogram_url %}
+<br>
+<h3>Histogram</h3>
+<img src="{{ histogram_url }}" style="max-width:400px; border:1px solid #ccc;">
+{% endif %}
+<br><br>
+<button class="save-btn" onclick="saveChanges('improve')">Save</button>
+
+</div>
+
+<div class="popup" id="compression">
+    <span class="close" onclick="closePopup()">×</span>
+    <h2>JPEG Compression</h2>
+
+<form action="/compress" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+
+    <label>Compression Quality (1 - 95)</label><br>
+    <input type="number" name="quality" value="70" min="1" max="95" required>
+
+    <br><br>
+    <button type="submit">Compress Image</button>
+</form>
+
+{% if compressed_url %}
+<hr>
+
+<h3>Compressed Result</h3>
+
+<p>
+    Size Before: {{ stats.before_kb }} KB <br>
+    Size After: {{ stats.after_kb }} KB <br>
+    Compression Ratio: {{ stats.ratio }}
+</p>
+
+<img src="{{ compressed_url }}" style="max-width:400px; border:1px solid #ccc;"><br><br>
+
+<!-- <a href="{{ compressed_url }}" download>
+    <button>Download Compressed Image</button>
+</a> -->
+{% endif %}
+
+<button class="save-btn" onclick="saveChanges('compression')">Save</button>
+
+</div>
+
+<div class="popup" id="edit">
+    <span class="close" onclick="closePopup()">×</span>
+    <h2>Crop Image (Editable Box)</h2>
+
+<!-- إطار القص -->
+<div id="crop-frame">
+    <img id="image" src="{{ image_url }}">
+
+    <div id="crop-box" style="display:none;">
+        <span class="handle tl"></span>
+        <span class="handle tm"></span>
+        <span class="handle tr"></span>
+        <span class="handle ml"></span>
+        <span class="handle mr"></span>
+        <span class="handle bl"></span>
+        <span class="handle bm"></span>
+        <span class="handle br"></span>
+    </div>
+</div>
+
+<br>
+
+<button onclick="enableCrop()">Crop Mode</button>
+<button onclick="submitCrop()">Save Crop</button>
+
+<form action="/rotate" method="post" style="display:inline;">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <select name="angle">
+        <option value="90">90°</option>
+        <option value="180">180°</option>
+        <option value="270">270°</option>
+    </select>
+    <button type="submit">Rotate</button>
+</form>
+
+
+<form id="crop-form" action="/crop" method="post">
+    <input type="hidden" name="image_url" value="{{ image_url }}">
+    <input type="hidden" name="x" id="x">
+    <input type="hidden" name="y" id="y">
+    <input type="hidden" name="width" id="width">
+    <input type="hidden" name="height" id="height">
+</form>
+<br>
+<button class="save-btn" onclick="saveChanges('edit')">Save</button>
+
+</div>
+
+<hr>
+<!-- مقارنة قبل/بعد -->
+<!-- مقارنة قبل/بعد -->
+<div id="compare-container">
+
+    <!-- الصورة الأصلية -->
+    <div class="compare-box">
+        <h3>Before</h3>
+        <img id="before-img" src="{{ image_url }}" alt="Before Image">
     </div>
 
-    {% if image_url %}
-    <div class="tools-section">
-        <button class="tool-btn" onclick="openPopup('edit')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Edit & Crop</span>
-        </button>
+    <!-- الصورة بعد التعديل (فارغة قبل أي تعديل) -->
+    <div class="compare-box">
+        <h3>After</h3>
 
-        <button class="tool-btn" onclick="openPopup('improve')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="12" cy="12" r="3" stroke-width="2"/>
-                <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span>Enhance</span>
-        </button>
-
-        <button class="tool-btn" onclick="openPopup('compression')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Compress</span>
-        </button>
-
-        <button class="tool-btn tool-btn-success" onclick="downloadImage()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Download</span>
-        </button>
-    </div>
-    {% endif %}
-
-    <div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
-
-    <div class="popup" id="edit">
-        <div class="popup-header">
-            <h2>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
-                </svg>
-                Edit & Crop
-            </h2>
-            <button class="close-btn" onclick="closePopup()">×</button>
-        </div>
-
-        <div class="popup-content">
-            <div class="control-group">
-                <label>Rotate Image</label>
-                <form action="/rotate" method="post" class="inline-form">
-                    <input type="hidden" name="image_url" value="{{ image_url }}">
-                    <div class="button-group">
-                        <button type="submit" name="angle" value="90" class="btn-secondary">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M23 4v6h-6M1 20v-6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            90°
-                        </button>
-                        <button type="submit" name="angle" value="180" class="btn-secondary">180°</button>
-                        <button type="submit" name="angle" value="270" class="btn-secondary">270°</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="control-group">
-                <label>Crop Image</label>
-                <div id="crop-frame">
-                    <img id="image" src="{{ image_url }}" alt="Image to crop">
-                    <div id="crop-box" style="display:none;">
-                        <span class="handle tl"></span>
-                        <span class="handle tr"></span>
-                        <span class="handle bl"></span>
-                        <span class="handle br"></span>
-                    </div>
-                </div>
-
-                <div class="button-group">
-                    <button onclick="enableCrop()" class="btn-secondary">Enable Crop</button>
-                    <button onclick="submitCrop()" class="btn-primary">Apply Crop</button>
-                </div>
-            </div>
-
-            <form id="crop-form" action="/crop" method="post">
-                <input type="hidden" name="image_url" value="{{ image_url }}">
-                <input type="hidden" name="x" id="x">
-                <input type="hidden" name="y" id="y">
-                <input type="hidden" name="width" id="width">
-                <input type="hidden" name="height" id="height">
-            </form>
-        </div>
+        {% if edited_url %}
+            <img id="after-img" src="{{ edited_url }}" alt="After Image">
+        {% else %}
+            <div id="empty-after">No changes yet</div>
+        {% endif %}
     </div>
 
-    <div class="popup" id="improve">
-        <div class="popup-header">
-            <h2>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="3" stroke-width="2"/>
-                    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" stroke-width="2"/>
-                </svg>
-                Image Enhancement
-            </h2>
-            <button class="close-btn" onclick="closePopup()">×</button>
-        </div>
-
-        <div class="popup-content">
-            <form action="/brightness" method="post" class="control-group">
-                <input type="hidden" name="image_url" value="{{ image_url }}">
-                <label>Brightness <span id="brightness-value">1.0</span></label>
-                <input type="range" name="factor" min="0.2" max="2" step="0.1" value="1" class="slider" oninput="updateValue('brightness', this.value)">
-                <button type="submit" class="btn-primary">Apply</button>
-            </form>
-
-            <form action="/contrast" method="post" class="control-group">
-                <input type="hidden" name="image_url" value="{{ image_url }}">
-                <label>Contrast <span id="contrast-value">1.0</span></label>
-                <input type="range" name="factor" min="0.2" max="2" step="0.1" value="1" class="slider" oninput="updateValue('contrast', this.value)">
-                <button type="submit" class="btn-primary">Apply</button>
-            </form>
-
-            <div class="control-group">
-                <label>Filters</label>
-                <div class="button-group">
-                    <form action="/sharpen" method="post" style="display:inline;">
-                        <input type="hidden" name="image_url" value="{{ image_url }}">
-                        <button type="submit" class="btn-secondary">Sharpen</button>
-                    </form>
-
-                    <form action="/smooth" method="post" style="display:inline;">
-                        <input type="hidden" name="image_url" value="{{ image_url }}">
-                        <button type="submit" class="btn-secondary">Smooth</button>
-                    </form>
-                </div>
-            </div>
-
-            <form action="/histogram" method="post" class="control-group">
-                <input type="hidden" name="image_url" value="{{ image_url }}">
-                <label>Analysis</label>
-                <button type="submit" class="btn-secondary full-width">Show Histogram</button>
-            </form>
-
-            {% if histogram_url %}
-            <div class="histogram-result">
-                <h3>Histogram Analysis</h3>
-                <img src="{{ histogram_url }}" alt="Histogram">
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="popup" id="compression">
-        <div class="popup-header">
-            <h2>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-width="2"/>
-                </svg>
-                Image Compression
-            </h2>
-            <button class="close-btn" onclick="closePopup()">×</button>
-        </div>
-
-        <div class="popup-content">
-            <form action="/compress" method="post" class="control-group">
-                <input type="hidden" name="image_url" value="{{ image_url }}">
-                <label>Quality Level <span id="quality-value">70</span>%</label>
-                <input type="range" name="quality" value="70" min="1" max="95" class="slider" oninput="updateValue('quality', this.value)">
-                <p class="help-text">Lower quality = smaller file size</p>
-                <button type="submit" class="btn-primary full-width">Compress Image</button>
-            </form>
-
-            {% if stats %}
-            <div class="compression-stats">
-                <h3>Compression Results</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-label">Original Size</span>
-                        <span class="stat-value">{{ stats.before_kb }} KB</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Compressed Size</span>
-                        <span class="stat-value">{{ stats.after_kb }} KB</span>
-                    </div>
-                    <div class="stat-card stat-card-success">
-                        <span class="stat-label">Compression Ratio</span>
-                        <span class="stat-value">{{ stats.ratio }}x</span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {% if image_url %}
-    <div class="comparison-section">
-        <div class="compare-header">
-            <h2>Image Comparison</h2>
-        </div>
-
-        <div class="compare-container">
-            <div class="compare-box">
-                <div class="compare-label">Before</div>
-                <div class="image-wrapper">
-                    {% if image_url %}
-                        <img src="{{ image_url }}" alt="Before Image">
-                    {% else %}
-                        <div class="empty-state">Upload an image to start</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="compare-divider">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M5 12h14M12 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-
-            <div class="compare-box">
-                <div class="compare-label">After</div>
-                <div class="image-wrapper">
-                    {% if edited_url %}
-                        <img src="{{ edited_url }}" alt="After Image">
-                    {% else %}
-                        <div class="empty-state">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                                <path d="M12 16v-4M12 8h.01" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <p>No edits applied yet</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <script src="/static/script.js"></script>
