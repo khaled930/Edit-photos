@@ -149,7 +149,7 @@ a button:hover {
     cursor: pointer;
     font-size: 16px;
     margin-top: 10px;
-}س
+}
 
 .save-btn:hover {
     background-color: #45a049;
@@ -182,6 +182,20 @@ select {
     cursor: crosshair;
 }
 
+#image_1 {
+    max-width: 520px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    cursor: crosshair;
+}
+
+#image_2 {
+    max-width: 520px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    cursor: crosshair;
+}
+
 /* ===== مربع القص ===== */
 
 
@@ -193,6 +207,12 @@ input[type="hidden"] {
 /* ===== استجابة الشاشات الصغيرة ===== */
 @media (max-width: 600px) {
     #image {
+        max-width: 90vw;
+    }
+    #image_1 {
+        max-width: 90vw;
+    }
+    #image_2 {
         max-width: 90vw;
     }
 
@@ -212,12 +232,11 @@ input[type="hidden"] {
     background: #000;
     position: relative;
 }
-
 #crop-frame img {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
     cursor: grab;
     user-select: none;
 }

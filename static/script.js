@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* ===== Submit Crop ===== */
+/* ===== Submit Crop ===== */
     window.submitCrop = function () {
         const imgRect = img.getBoundingClientRect();
         const boxRect = cropBox.getBoundingClientRect();
@@ -128,14 +128,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("crop-form").submit();
     };
+    
+
+
 
 
     /* ===== Save Changes ===== */
-    window.saveChanges = function (popupId) {
-        alert("Changes in " + popupId + " saved successfully!");
-    };
+    /* ===== Save Changes ===== */
+window.saveChanges = function (popupId) {
+    alert("Changes in " + popupId + " saved successfully!");
+    // إغلاق الواجهة المنبثقة بعد الضغط على Save
+    closePopup();
+};
+
 
 });
+
 
 
 
