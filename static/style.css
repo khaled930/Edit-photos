@@ -130,12 +130,23 @@ a button:hover {
 
 /* ===== Image Container ===== */
 #image-container {
-    display: inline-block;
-    margin-top: 15px;
+    max-width: 100%;
+    max-height: 45vh;          /* 🔑 ما تتجاوز 45% من الشاشة */
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background: #fff;
     padding: 10px;
     border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+#main-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;       /* 🔑 بدون قص */
+    border-radius: 8px;
 }
 
 /* ===== Crop Frame ===== */
@@ -181,6 +192,23 @@ a button:hover {
 
 /* ===== Responsive ===== */
 @media (max-width: 600px) {
+      #image-container {
+        max-height: 35vh;      /* أصغر على الجوال */
+        padding: 6px;
+    }
+
+    #main-img {
+        max-height: 35vh;
+    }
+
+    .tools {
+        flex-direction: column;   /* الأزرار عمودي */
+    }
+
+    .tools button {
+        font-size: 14px;
+        padding: 12px 0;
+    }
     h1 {
         font-size: 26px;
     }
