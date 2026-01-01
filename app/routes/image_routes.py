@@ -132,14 +132,15 @@ def compress_image(
     compressed_url = "/uploads/compressed/" + f"compressed_{filename}"
 
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "image_url": image_url,        # Before
-            "edited_url": compressed_url,  # After
-            "stats": stats
-        }
-    )
+    "index.html",
+    {
+        "request": request,
+        "image_url": image_url,
+        "edited_url": compressed_url,
+        "compressed_url": compressed_url,
+        "stats": stats
+    }
+)
 
 
 

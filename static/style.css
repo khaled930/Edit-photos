@@ -28,8 +28,22 @@ body {
     flex-wrap: wrap;
 }
 
-.tools button {
+.tools > button,
+.tools > a {
     flex: 1;
+}
+
+.tools > a {
+    display: flex;
+    text-decoration: none;
+}
+
+.tools > a > button {
+    width: 100%;
+    margin: 0;
+}
+
+.tools button {
     background-color: #5dade2;
     border: none;
     color: white;
@@ -131,12 +145,12 @@ a button:hover {
 /* ===== Image Container ===== */
 #image-container {
     max-width: 100%;
-    max-height: 45vh;          /* 🔑 ما تتجاوز 45% من الشاشة */
+    max-height: 67vh;        
     margin: 20px auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #fff;
+    background: none;
     padding: 10px;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);

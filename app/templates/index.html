@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Image Editor</title>
-
-    <!-- مهم جدًا للـ Responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -25,7 +23,7 @@
         </a>
     {% else %}
         <a href="{{ image_url }}" download>
-            <button type="button">Save</button>
+            <button type="button"">Save</button>
         </a>
     {% endif %}
 
@@ -38,11 +36,15 @@
 <div class="popup" id="improve">
     <span class="close" onclick="closePopup()">×</span>
 
-    <div style="text-align:center;">
+    <div style=" text-align:center;">
         <img id="image_1" src="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
     </div>
 
     <h2>Image Enhancement</h2>
+
+  <div class="row">
+
+    <div class="col-6">
 
     <form action="/brightness" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
@@ -67,6 +69,9 @@
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <button type="submit">Smooth</button>
     </form>
+    </div>
+    
+    <div class="col-6">
 
     <form action="/histogram" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
@@ -77,6 +82,10 @@
         <h3>Histogram</h3>
         <img src="{{ histogram_url }}" style="max-width:100%;">
     {% endif %}
+    </div>
+
+ </div>
+
 </div>
 
 <!-- ================= Compression ================= -->
@@ -103,7 +112,6 @@
             Size After: {{ stats.after_kb }} KB <br>
             Compression Ratio: {{ stats.ratio }}
         </p>
-        <img src="{{ compressed_url }}" style="max-width:100%;">
     {% endif %}
 </div>
 
