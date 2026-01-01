@@ -1,60 +1,69 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* ====== Popup Control ====== */
-    function openPopup(id) {
+    /* ================= Popup Control ================= */
+    window.openPopup = function (id) {
         closePopup();
         document.getElementById(id).style.display = "block";
-    }
+    };
 
-    function closePopup() {
-        let popups = document.querySelectorAll(".popup");
-        popups.forEach(popup => {
-            popup.style.display = "none";
+    window.closePopup = function () {
+        document.querySelectorAll(".popup").forEach(p => {
+            p.style.display = "none";
         });
-    }
-
-    window.openPopup = openPopup;   // لجعلها متاحة في HTML
-    window.closePopup = closePopup;
+    };
 
 
-    /* ===== Crop Elements ===== */
+    /* ================= Crop Elements ================= */
     const cropBox = document.getElementById("crop-box");
     const img = document.getElementById("image");
-    const fileInput = document.getElementById("fileInput");
 
-    let startX, startY, mode;
+    let startX = 0, startY = 0;
     let box = {};
+    let mode = "move";
     const MIN_SIZE = 40;
 
 
-    /* ===== Enable Crop ===== */
+    /* ================= Enable Crop ================= */
     window.enableCrop = function () {
+        if (!img.complete) return;
+
         cropBox.style.display = "block";
-        cropBox.style.left = "50px";
-        cropBox.style.top = "50px";
+        cropBox.style.left = "40px";
+        cropBox.style.top = "40px";
         cropBox.style.width = "200px";
         cropBox.style.height = "150px";
     };
 
 
-    /* ===== Allow clicking on floating buttons even if cropBox is above ===== */
-    cropBox.style.pointerEvents = "auto";
-    document.querySelectorAll(".floating-btn, .fab-item").forEach(btn => {
-        btn.style.pointerEvents = "auto";
-    });
+    /* ================= Helpers ================= */
+    function getPoint(e) {
+        if (e.touches) {
+            return {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY
+            };
+        }
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+    }
 
 
-    /* ===== Mouse Down ===== */
-    cropBox.addEventListener("mousedown", e => {
+    /* ================= Start Drag ================= */
+    function start(e) {
         e.preventDefault();
-        e.stopPropagation();   // مهم جداً — يمنع تعطيل أزرار الواجهة العائمة
+        e.stopPropagation();
+
+        const point = getPoint(e);
 
         mode = e.target.classList.contains("handle")
             ? e.target.classList[1]
             : "move";
 
-        startX = e.clientX;
-        startY = e.clientY;
+        startX = point.x;
+        startY = point.y;
 
         box = {
             x: cropBox.offsetLeft,
@@ -63,15 +72,22 @@ document.addEventListener("DOMContentLoaded", () => {
             h: cropBox.offsetHeight
         };
 
-        document.addEventListener("mousemove", resize);
+        document.addEventListener("mousemove", move);
         document.addEventListener("mouseup", stop);
-    });
+        document.addEventListener("touchmove", move, { passive: false });
+        document.addEventListener("touchend", stop);
+    }
 
 
-    /* ===== Resize / Move ===== */
-    function resize(e) {
-        let dx = e.clientX - startX;
-        let dy = e.clientY - startY;
+    /* ================= Move / Resize ================= */
+    function move(e) {
+        e.preventDefault();
+        const point = getPoint(e);
+
+        let dx = point.x - startX;
+        let dy = point.y - startY;
+
+        const imgRect = img.getBoundingClientRect();
 
         let x = box.x;
         let y = box.y;
@@ -95,6 +111,10 @@ document.addEventListener("DOMContentLoaded", () => {
             y = box.y + dy;
         }
 
+        /* ===== Keep inside image ===== */
+        x = clamp(x, 0, imgRect.width - w);
+        y = clamp(y, 0, imgRect.height - h);
+
         cropBox.style.left = x + "px";
         cropBox.style.top = y + "px";
         cropBox.style.width = w + "px";
@@ -102,15 +122,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* ===== Stop ===== */
+    /* ================= Stop ================= */
     function stop() {
-        document.removeEventListener("mousemove", resize);
+        document.removeEventListener("mousemove", move);
         document.removeEventListener("mouseup", stop);
+        document.removeEventListener("touchmove", move);
+        document.removeEventListener("touchend", stop);
     }
 
 
-/* ===== Submit Crop ===== */
+    cropBox.addEventListener("mousedown", start);
+    cropBox.addEventListener("touchstart", start, { passive: false });
+
+
+    /* ================= Submit Crop ================= */
     window.submitCrop = function () {
+        if (!img.complete) return;
+
         const imgRect = img.getBoundingClientRect();
         const boxRect = cropBox.getBoundingClientRect();
 
@@ -119,31 +147,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("x").value =
             Math.round((boxRect.left - imgRect.left) * scaleX);
+
         document.getElementById("y").value =
             Math.round((boxRect.top - imgRect.top) * scaleY);
+
         document.getElementById("width").value =
             Math.round(boxRect.width * scaleX);
+
         document.getElementById("height").value =
             Math.round(boxRect.height * scaleY);
 
         document.getElementById("crop-form").submit();
     };
-    
 
 
-
-
-    /* ===== Save Changes ===== */
-    /* ===== Save Changes ===== */
-window.saveChanges = function (popupId) {
-    alert("Changes in " + popupId + " saved successfully!");
-    // إغلاق الواجهة المنبثقة بعد الضغط على Save
-    closePopup();
-};
-
+    /* ================= Save Changes ================= */
+    window.saveChanges = function (popupId) {
+        closePopup();
+    };
 
 });
-
-
-
-

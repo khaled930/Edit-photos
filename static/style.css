@@ -1,82 +1,75 @@
-/* ===== Reset بسيط ===== */
+/* ===== Reset ===== */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-/* ===== الصفحة العامة ===== */
-
+/* ===== Body ===== */
 body {
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    /* background: linear-gradient(135deg, #eef2f3, #dfe9f3);
-    background-image: url('/static/imgs/img2.jpeg'); */
-      background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), 
-                url('/static/imgs/img2.jpeg');
-    
-    background-size: cover; 
+    background:
+        linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
+        url('/static/imgs/img2.jpeg');
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
     min-height: 100vh;
     text-align: center;
     color: #333;
     padding: 20px;
 }
 
-/* ===== tools ===== */
+/* ===== Tools ===== */
 .tools {
     display: flex;
     width: 100%;
+    gap: 5px;
+    flex-wrap: wrap;
 }
 
 .tools button {
     flex: 1;
     background-color: #5dade2;
     border: none;
-    color: white; 
-    padding: 15px 0;
+    color: white;
+    padding: 14px 0;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
+    border-radius: 8px;
     transition: background-color 0.3s ease;
 }
 
 .tools button:hover {
-    background-color: #21618c; 
+    background-color: #21618c;
 }
 
-/* CSS موجود للأزرار */
-.tools button {
-    flex: 1;
-    background-color: #5dade2;
-    color: white;
-    padding: 15px 0;
-}
-
-/* CSS جديد للواجهات العائمة فقط */
+/* ===== Popup ===== */
 .popup {
     display: none;
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset: 0;
+    margin: auto;
     background: white;
-    width: 900px;      /* عرض الواجهة */
-    height: 730px;     /* ارتفاع الواجهة */
+    width: 90%;
+    max-width: 900px;
+    height: 90vh;
     padding: 20px;
+    overflow-y: auto;
     box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    border-radius: 10px;
+    border-radius: 12px;
     z-index: 1000;
 }
+
 .close {
     position: absolute;
     top: 10px;
     right: 15px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 22px;
 }
 
-/* ===== العنوان ===== */
+/* ===== Titles ===== */
 h1 {
     margin-bottom: 20px;
     color: #122231;
@@ -88,37 +81,26 @@ h2 {
     color: #34495e;
 }
 
-/* ===== الفواصل ===== */
-hr {
-    margin: 25px auto;
-    width: 70%;
-    border: none;
-    height: 1px;
-    background: #bbb;
-}
-
-/* ===== النماذج ===== */
+/* ===== Forms ===== */
 form {
     margin: 15px 0;
 }
 
-/* ===== رفع الملفات ===== */
-input[type="file"] {
-    padding: 6px;
-    background: #fff;
-    border: 1px solid #ccc;
+input[type="file"],
+select {
+    padding: 7px;
     border-radius: 6px;
+    border: 1px solid #ccc;
 }
 
-/* ===== أزرار ===== */
+/* ===== Buttons ===== */
 button {
     padding: 8px 18px;
     margin: 5px;
-    border: none;
     border-radius: 8px;
+    border: none;
     background: #3498db;
-    color: #fff;
-    font-size: 14px;
+    color: white;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -128,11 +110,6 @@ button:hover {
     transform: translateY(-1px);
 }
 
-button:active {
-    transform: scale(0.97);
-}
-
-/* زر حفظ */
 a button {
     background: #2ecc71;
 }
@@ -140,91 +117,32 @@ a button {
 a button:hover {
     background: #27ae60;
 }
-.save-btn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 18px;
-    border: none;
+
+/* ===== Images ===== */
+#image,
+#image_1,
+#image_2 {
+    max-width: 520px;
+    width: 100%;
     border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
+    border: 1px solid #ddd;
 }
 
-.save-btn:hover {
-    background-color: #45a049;
-}
-
-
-/* ===== Select ===== */
-select {
-    padding: 7px 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-right: 5px;
-}
-
-/* ===== الصورة والقص ===== */
+/* ===== Image Container ===== */
 #image-container {
-    position: relative;
     display: inline-block;
     margin-top: 15px;
     background: #fff;
     padding: 10px;
     border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-#image {
-    max-width: 520px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    cursor: crosshair;
-}
-
-#image_1 {
-    max-width: 520px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    cursor: crosshair;
-}
-
-#image_2 {
-    max-width: 520px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    cursor: crosshair;
-}
-
-/* ===== مربع القص ===== */
-
-
-/* ===== مدخلات القص المخفية ===== */
-input[type="hidden"] {
-    display: none;
-}
-
-/* ===== استجابة الشاشات الصغيرة ===== */
-@media (max-width: 600px) {
-    #image {
-        max-width: 90vw;
-    }
-    #image_1 {
-        max-width: 90vw;
-    }
-    #image_2 {
-        max-width: 90vw;
-    }
-
-    h1 {
-        font-size: 26px;
-    }
-}
-
-
+/* ===== Crop Frame ===== */
 #crop-frame {
-    width: 400px;
-    height: 300px;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 4 / 3;
     margin: 20px auto;
     overflow: hidden;
     border: 3px solid #3498db;
@@ -232,34 +150,19 @@ input[type="hidden"] {
     background: #000;
     position: relative;
 }
+
 #crop-frame img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    display: block;
-    cursor: grab;
     user-select: none;
 }
 
-#editor {
-    position: relative;
-    display: inline-block;
-    margin: 20px auto;
-}
-
-#editor img {
-    max-width: 500px;
-    display: block;
-}
-
+/* ===== Crop Box ===== */
 #crop-box {
     position: absolute;
-    top: 50px;
-    left: 50px;
-    width: 200px;
-    height: 150px;
     border: 2px dashed #00aaff;
-    background: rgba(0, 170, 255, 0.2);
+    background: rgba(0,170,255,0.2);
     cursor: move;
 }
 
@@ -269,53 +172,26 @@ input[type="hidden"] {
     background: white;
     border: 2px solid #00aaff;
     position: absolute;
-    display: block;   /* ← عرض المقبض */
 }
-
 
 .tl { top: -6px; left: -6px; cursor: nwse-resize; }
 .tr { top: -6px; right: -6px; cursor: nesw-resize; }
 .bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
 .br { bottom: -6px; right: -6px; cursor: nwse-resize; }
 
-/* ====== Before / After Compare Box ====== */
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 26px;
+    }
 
-#compare-container {
-    width: 90%;
-    margin: 40px auto;
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    backdrop-filter: blur(4px);
+    .tools {
+        flex-direction: column;
+    }
+
+    .popup {
+        width: 95%;
+        height: 95vh;
+        padding: 15px;
+    }
 }
-
-.compare-box {
-    flex: 1;
-    text-align: center;
-    color: white;
-}
-
-.compare-box img {
-    max-width: 100%;
-    border-radius: 10px;
-    border: 2px solid #aaa;
-}
-
-#empty-after {
-    width: 100%;
-    padding: 50px 0;
-    border: 2px dashed #777;
-    border-radius: 10px;
-    color: #ccc;
-    font-size: 18px;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-
-
-
-
-

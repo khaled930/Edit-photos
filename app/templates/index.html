@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Image Editor</title>
+
+    <!-- مهم جدًا للـ Responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -15,7 +19,6 @@
 </form>
 
 <div class="tools">
-    <!-- زر Save بالواجهة الرئيسية فقط -->
     {% if edited_url %}
         <a href="{{ edited_url }}" download>
             <button type="button">Save</button>
@@ -31,13 +34,16 @@
     <button type="button" onclick="openPopup('edit')">Edit</button>
 </div>
 
-<!-- تحسين الصورة -->
+<!-- ================= Improve ================= -->
 <div class="popup" id="improve">
-    <span class="close" onclick="closePopup()">x</span>
-    <img id="image_1" src="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
+    <span class="close" onclick="closePopup()">×</span>
+
+    <div style="text-align:center;">
+        <img id="image_1" src="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
+    </div>
+
     <h2>Image Enhancement</h2>
 
-    <!-- Brightness -->
     <form action="/brightness" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <label>Brightness</label><br>
@@ -45,9 +51,6 @@
         <button type="submit">Apply</button>
     </form>
 
-    <br>
-
-    <!-- Contrast -->
     <form action="/contrast" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <label>Contrast</label><br>
@@ -55,89 +58,75 @@
         <button type="submit">Apply</button>
     </form>
 
-    <br>
-
-    <!-- Sharpen -->
     <form action="/sharpen" method="post" style="display:inline;">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <button type="submit">Sharpen</button>
     </form>
 
-    <!-- Smooth -->
     <form action="/smooth" method="post" style="display:inline;">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <button type="submit">Smooth</button>
     </form>
 
-    <br><br>
-
-    <!-- Histogram -->
     <form action="/histogram" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <button type="submit">Show Histogram</button>
     </form>
 
     {% if histogram_url %}
-    <br>
-    <h3>Histogram</h3>
-    <img src="{{ histogram_url }}" style="max-width:400px; border:1px solid #ccc;">
+        <h3>Histogram</h3>
+        <img src="{{ histogram_url }}" style="max-width:100%;">
     {% endif %}
-    <br><br>
-    
 </div>
 
-<!-- الضغط -->
+<!-- ================= Compression ================= -->
 <div class="popup" id="compression">
-    <span class="close" onclick="closePopup()">x</span>
-    <img id="image_2" src="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
+    <span class="close" onclick="closePopup()">×</span>
+
+    <div style="text-align:center;">
+        <img id="image_2" src="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
+    </div>
+
     <h2>JPEG Compression</h2>
 
     <form action="/compress" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <label>Compression Quality (1 - 95)</label><br>
         <input type="number" name="quality" value="70" min="1" max="95" required>
-        <br><br>
         <button type="submit">Compress Image</button>
     </form>
 
     {% if compressed_url %}
-    <hr>
-    <h3>Compressed Result</h3>
-    <p>
-        Size Before: {{ stats.before_kb }} KB <br>
-        Size After: {{ stats.after_kb }} KB <br>
-        Compression Ratio: {{ stats.ratio }}
-    </p>
-    <img src="{{ compressed_url }}" style="max-width:400px; border:1px solid #ccc;"><br><br>
+        <h3>Compressed Result</h3>
+        <p>
+            Size Before: {{ stats.before_kb }} KB <br>
+            Size After: {{ stats.after_kb }} KB <br>
+            Compression Ratio: {{ stats.ratio }}
+        </p>
+        <img src="{{ compressed_url }}" style="max-width:100%;">
     {% endif %}
-
 </div>
 
-<!-- التعديل (قص/دوران) -->
+<!-- ================= Edit ================= -->
 <div class="popup" id="edit">
-    <span class="close" onclick="closePopup()">x</span>
-    <h2>Crop Image (Editable Box)</h2>
+    <span class="close" onclick="closePopup()">×</span>
+
+    <h2>Crop Image</h2>
 
     <div id="crop-frame">
         <img id="image" src="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <div id="crop-box" style="display:none;">
             <span class="handle tl"></span>
-            <span class="handle tm"></span>
             <span class="handle tr"></span>
-            <span class="handle ml"></span>
-            <span class="handle mr"></span>
             <span class="handle bl"></span>
-            <span class="handle bm"></span>
             <span class="handle br"></span>
         </div>
     </div>
 
-    <br>
     <button onclick="enableCrop()">Crop Mode</button>
     <button onclick="submitCrop()">Save Crop</button>
 
-    <!-- Rotate -->
-    <form action="/rotate" method="post" style="display:inline;">
+    <form action="/rotate" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
         <select name="angle">
             <option value="0">0°</option>
@@ -148,25 +137,22 @@
         <button type="submit">Rotate</button>
     </form>
 
-    <!-- Crop -->
     <form id="crop-form" action="/crop" method="post">
         <input type="hidden" name="image_url" value="{% if edited_url %}{{ edited_url }}{% else %}{{ image_url }}{% endif %}">
-        <input type="hidden" name="x" id="x">
-        <input type="hidden" name="y" id="y">
-        <input type="hidden" name="width" id="width">
-        <input type="hidden" name="height" id="height">
+        <input type="hidden" id="x" name="x">
+        <input type="hidden" id="y" name="y">
+        <input type="hidden" id="width" name="width">
+        <input type="hidden" id="height" name="height">
     </form>
-
-    <br>
-
 </div>
 
 <hr>
+
 <div id="image-container">
     {% if edited_url %}
-        <img id="main-img" src="{{ edited_url }}" alt="Edited Image">
+        <img src="{{ edited_url }}">
     {% else %}
-        <img id="main-img" src="{{ image_url }}" alt="Original Image">
+        <img src="{{ image_url }}">
     {% endif %}
 </div>
 
