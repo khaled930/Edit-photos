@@ -1,93 +1,168 @@
+/* =========================================
+   Global Functions
+   ========================================= */
+
+function openEditor() {
+    const modal = document.getElementById('editor-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        // Small delay to allow display:flex to apply before opacity transition
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+        }, 10);
+    }
+}
+
+function closeEditor() {
+    const modal = document.getElementById('editor-modal');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        // Wait for transition to finish before hiding
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+}
+
+function switchTab(tabName) {
+    // Hide all panels
+    document.querySelectorAll('.control-panel').forEach(panel => {
+        panel.classList.add('hidden');
+    });
+    
+    // Show selected panel
+    const selectedPanel = document.getElementById('tab-' + tabName);
+    if (selectedPanel) selectedPanel.classList.remove('hidden');
+
+    // Update Sidebar Buttons
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.classList.remove('active');
+        // Reset icons color
+        const iconBox = btn.querySelector('div:first-child');
+        if(iconBox) {
+            iconBox.classList.remove('bg-primary', 'text-white');
+            iconBox.classList.add('bg-gray-200', 'dark:bg-white/5');
+        }
+    });
+    
+    // Highlight clicked button
+    if (event && event.currentTarget) {
+        const btn = event.currentTarget;
+        btn.classList.add('active');
+        const iconBox = btn.querySelector('div:first-child');
+        if(iconBox) {
+            iconBox.classList.remove('bg-gray-200', 'dark:bg-white/5');
+            iconBox.classList.add('bg-primary', 'text-white');
+        }
+    }
+
+    // View Switching (Crop vs Normal)
+    const cropWorkspace = document.getElementById('crop-workspace');
+    const normalView = document.getElementById('normal-view');
+
+    if (tabName === 'crop') {
+        if(cropWorkspace) cropWorkspace.classList.remove('hidden');
+        if(normalView) normalView.classList.add('hidden');
+    } else {
+        if(cropWorkspace) cropWorkspace.classList.add('hidden');
+        if(normalView) normalView.classList.remove('hidden');
+    }
+}
+
+/* Crop Logic Variables */
+let startX, startY, mode;
+let box = {};
+const MIN_SIZE = 40;
+
+function enableCrop() {
+    const cropBox = document.getElementById("crop-box");
+    if (cropBox) {
+        cropBox.style.display = "block";
+        cropBox.style.left = "25%";
+        cropBox.style.top = "25%";
+        cropBox.style.width = "50%";
+        cropBox.style.height = "50%";
+    }
+}
+
+function submitCrop() {
+    const img = document.getElementById("image");
+    const cropBox = document.getElementById("crop-box");
+    
+    if (!img || !cropBox) return;
+
+    const imgRect = img.getBoundingClientRect();
+    const boxRect = cropBox.getBoundingClientRect();
+
+    const scaleX = img.naturalWidth / imgRect.width;
+    const scaleY = img.naturalHeight / imgRect.height;
+
+    document.getElementById("x").value = Math.round((boxRect.left - imgRect.left) * scaleX);
+    document.getElementById("y").value = Math.round((boxRect.top - imgRect.top) * scaleY);
+    document.getElementById("width").value = Math.round(boxRect.width * scaleX);
+    document.getElementById("height").value = Math.round(boxRect.height * scaleY);
+
+    document.getElementById("crop-form").submit();
+}
+
+
+/* =========================================
+   DOM Loaded Logic
+   ========================================= */
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* ================= Popup Control ================= */
-    window.openPopup = function (id) {
-        closePopup();
-        document.getElementById(id).style.display = "block";
-    };
+    /* Theme Logic */
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const htmlElement = document.documentElement;
 
-    window.closePopup = function () {
-        document.querySelectorAll(".popup").forEach(p => {
-            p.style.display = "none";
+    if (localStorage.getItem('theme') === 'dark' || 
+       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        htmlElement.classList.add('dark');
+    } else {
+        htmlElement.classList.remove('dark');
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
         });
-    };
+    }
 
-
-    /* ================= Crop Elements ================= */
+    /* Crop Box Interaction */
     const cropBox = document.getElementById("crop-box");
-    const img = document.getElementById("image");
 
-    let startX = 0, startY = 0;
-    let box = {};
-    let mode = "move";
-    const MIN_SIZE = 40;
+    if (cropBox) {
+        cropBox.addEventListener("mousedown", e => {
+            e.preventDefault();
+            e.stopPropagation();
 
+            mode = e.target.classList.contains("handle") ? e.target.classList[1] : "move";
 
-    /* ================= Enable Crop ================= */
-    window.enableCrop = function () {
-        if (!img.complete) return;
+            startX = e.clientX;
+            startY = e.clientY;
 
-        cropBox.style.display = "block";
-        cropBox.style.left = "40px";
-        cropBox.style.top = "40px";
-        cropBox.style.width = "200px";
-        cropBox.style.height = "150px";
-    };
-
-
-    /* ================= Helpers ================= */
-    function getPoint(e) {
-        if (e.touches) {
-            return {
-                x: e.touches[0].clientX,
-                y: e.touches[0].clientY
+            box = {
+                x: cropBox.offsetLeft,
+                y: cropBox.offsetTop,
+                w: cropBox.offsetWidth,
+                h: cropBox.offsetHeight
             };
-        }
-        return { x: e.clientX, y: e.clientY };
+
+            document.addEventListener("mousemove", resize);
+            document.addEventListener("mouseup", stop);
+        });
     }
 
-    function clamp(val, min, max) {
-        return Math.max(min, Math.min(max, val));
-    }
-
-
-    /* ================= Start Drag ================= */
-    function start(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const point = getPoint(e);
-
-        mode = e.target.classList.contains("handle")
-            ? e.target.classList[1]
-            : "move";
-
-        startX = point.x;
-        startY = point.y;
-
-        box = {
-            x: cropBox.offsetLeft,
-            y: cropBox.offsetTop,
-            w: cropBox.offsetWidth,
-            h: cropBox.offsetHeight
-        };
-
-        document.addEventListener("mousemove", move);
-        document.addEventListener("mouseup", stop);
-        document.addEventListener("touchmove", move, { passive: false });
-        document.addEventListener("touchend", stop);
-    }
-
-
-    /* ================= Move / Resize ================= */
-    function move(e) {
-        e.preventDefault();
-        const point = getPoint(e);
-
-        let dx = point.x - startX;
-        let dy = point.y - startY;
-
-        const imgRect = img.getBoundingClientRect();
+    function resize(e) {
+        let dx = e.clientX - startX;
+        let dy = e.clientY - startY;
 
         let x = box.x;
         let y = box.y;
@@ -97,23 +172,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (mode === "move") {
             x += dx;
             y += dy;
+        } else {
+            if (mode.includes("r")) w = Math.max(MIN_SIZE, box.w + dx);
+            if (mode.includes("l")) {
+                w = Math.max(MIN_SIZE, box.w - dx);
+                x = box.x + dx;
+            }
+            if (mode.includes("b")) h = Math.max(MIN_SIZE, box.h + dy);
+            if (mode.includes("t")) {
+                h = Math.max(MIN_SIZE, box.h - dy);
+                y = box.y + dy;
+            }
         }
-
-        if (mode.includes("r")) w = Math.max(MIN_SIZE, box.w + dx);
-        if (mode.includes("l")) {
-            w = Math.max(MIN_SIZE, box.w - dx);
-            x = box.x + dx;
-        }
-
-        if (mode.includes("b")) h = Math.max(MIN_SIZE, box.h + dy);
-        if (mode.includes("t")) {
-            h = Math.max(MIN_SIZE, box.h - dy);
-            y = box.y + dy;
-        }
-
-        /* ===== Keep inside image ===== */
-        x = clamp(x, 0, imgRect.width - w);
-        y = clamp(y, 0, imgRect.height - h);
 
         cropBox.style.left = x + "px";
         cropBox.style.top = y + "px";
@@ -121,49 +191,8 @@ document.addEventListener("DOMContentLoaded", () => {
         cropBox.style.height = h + "px";
     }
 
-
-    /* ================= Stop ================= */
     function stop() {
-        document.removeEventListener("mousemove", move);
+        document.removeEventListener("mousemove", resize);
         document.removeEventListener("mouseup", stop);
-        document.removeEventListener("touchmove", move);
-        document.removeEventListener("touchend", stop);
     }
-
-
-    cropBox.addEventListener("mousedown", start);
-    cropBox.addEventListener("touchstart", start, { passive: false });
-
-
-    /* ================= Submit Crop ================= */
-    window.submitCrop = function () {
-        if (!img.complete) return;
-
-        const imgRect = img.getBoundingClientRect();
-        const boxRect = cropBox.getBoundingClientRect();
-
-        const scaleX = img.naturalWidth / imgRect.width;
-        const scaleY = img.naturalHeight / imgRect.height;
-
-        document.getElementById("x").value =
-            Math.round((boxRect.left - imgRect.left) * scaleX);
-
-        document.getElementById("y").value =
-            Math.round((boxRect.top - imgRect.top) * scaleY);
-
-        document.getElementById("width").value =
-            Math.round(boxRect.width * scaleX);
-
-        document.getElementById("height").value =
-            Math.round(boxRect.height * scaleY);
-
-        document.getElementById("crop-form").submit();
-    };
-
-
-    /* ================= Save Changes ================= */
-    window.saveChanges = function (popupId) {
-        closePopup();
-    };
-
 });
