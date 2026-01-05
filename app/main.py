@@ -7,7 +7,7 @@ import uvicorn
 
 app = FastAPI(title="Image Editing Platform")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/uploads", StaticFiles(directory="app/static/uploads"), name="uploads")
 app.include_router(image_router)
 
@@ -19,4 +19,4 @@ def read_root():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
