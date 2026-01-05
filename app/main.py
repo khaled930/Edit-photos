@@ -4,10 +4,14 @@ from fastapi.responses import RedirectResponse
 from app.routes.image_routes import router as image_router
 import os
 import uvicorn
+from pathlib import Path
 
 app = FastAPI(title="Image Editing Platform")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = BASE_DIR / "static"
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory="app/static/uploads"), name="uploads")
 app.include_router(image_router)
 
