@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة المستخدمين - Pro Image Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        primary: { DEFAULT: '#b9955c', hover: '#d4af37' },
+                        dark: { main: '#082c58', surface: '#183b65' },
+                        light: { main: '#f5f8ff', surface: '#ffffff' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-light-main dark:bg-dark-main text-gray-800 dark:text-gray-100 min-h-screen flex flex-col items-center p-6 transition-colors duration-500">
+
+    <h2 class="text-2xl font-bold mb-6">قائمة المستخدمين</h2>
+
+    <div class="overflow-x-auto w-full max-w-4xl">
+        <table class="min-w-full border border-gray-300 dark:border-white/20 rounded-lg overflow-hidden">
+            <thead class="bg-gray-100 dark:bg-dark-surface/80">
+                <tr>
+                    <th class="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-100">المعرف</th>
+                    <th class="px-6 py-3 text-center font-semibold text-gray-700 dark:text-gray-100">اسم المستخدم</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr class="even:bg-gray-50 odd:bg-white dark:even:bg-dark-surface/70 dark:odd:bg-dark-surface/60 hover:bg-primary/20 transition-colors">
+                    <td class="px-6 py-3 text-center">{{ u.id }}</td>
+                    <td class="px-6 py-3 text-center">{{ u.username }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6">
+        <a href="/editor" class="px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-lg shadow-lg transition-all duration-300">عودة للمحرر</a>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - Pro Image Studio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            DEFAULT: '#b9955c',
+                            hover: '#d4af37'
+                        },
+                        dark: {
+                            main: '#082c58',
+                            surface: '#183b65'
+                        },
+                        light: {
+                            main: '#f5f8ff',
+                            surface: '#ffffff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-light-main dark:bg-dark-main flex items-center justify-center min-h-screen transition-colors duration-500">
+
+    <div class="bg-white dark:bg-dark-surface p-8 rounded-3xl shadow-xl w-full max-w-md">
+        <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-100 text-center mb-6">تسجيل الدخول</h2>
+        
+        {% if error %}
+        <div class="mb-4 p-2 text-red-700 bg-red-100 rounded">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="/login" class="flex flex-col gap-4">
+            <input type="text" name="username" placeholder="اسم المستخدم" required
+                class="p-3 rounded-lg border border-gray-300 dark:border-white/20 bg-gray-50 dark:bg-dark-main text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+            <input type="password" name="password" placeholder="كلمة المرور" required
+                class="p-3 rounded-lg border border-gray-300 dark:border-white/20 bg-gray-50 dark:bg-dark-main text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+            <button type="submit" 
+                class="bg-primary hover:bg-primary-hover text-white py-3 rounded-lg font-bold transition-all duration-300 shadow-lg">دخول</button>
+        </form>
+
+        <div class="text-center mt-4 text-gray-600 dark:text-gray-300">
+            <a href="/register" class="text-primary hover:underline font-semibold">إنشاء حساب جديد</a>
+        </div>
+    </div>
+
+</body>
+</html>

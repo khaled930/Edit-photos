@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>محرر الصور</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        img { max-width: 100%; height: auto; border: 2px solid #ccc; border-radius: 8px; margin-top: 20px; }
+        a { color: #b9955c; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+{% if not user %}
+    <p>يرجى <a href="/login">تسجيل الدخول</a> للوصول إلى محرر الصور.</p>
+{% else %}
+    <h2>مرحباً {{ user }}</h2>
+
+    <p>هذه صفحة محرر الصور</p>
+
+    <!-- عرض الصورة -->
+    {% if image_url or edited_url %}
+        <img src="{{ edited_url if edited_url else image_url }}" alt="صورة المستخدم">
+    {% else %}
+        <p>لا توجد صورة مرفوعة بعد.</p>
+    {% endif %}
+
+    <p><a href="/logout">تسجيل الخروج</a></p>
+{% endif %}
+
+</body>
+</html>
