@@ -1,8 +1,6 @@
 import os
 from uuid import uuid4
 from PIL import Image
-import os
-from uuid import uuid4
 
 UPLOAD_DIR = "app/static/uploads"
 

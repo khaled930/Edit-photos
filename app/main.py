@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 import uvicorn
+import os
 
 # Routes
 from app.routes import image_routes, auth_routes
@@ -25,11 +25,6 @@ app = FastAPI(title="Image Editing Platform")
 # =========================
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/uploads", StaticFiles(directory="app/static/uploads"), name="uploads")
-
-# =========================
-# Templates
-# =========================
-templates = Jinja2Templates(directory="app/templates")
 
 # =========================
 # Database
@@ -109,18 +104,11 @@ def editor_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse("/login")
 
-    images = crud.get_user_images(db, user.id)
-
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "user": username,
-            "images": images,
-            "image_url": "",
-            "edited_url": ""
-        }
-    )
+    # Return static HTML file
+    html_path = os.path.join("app", "static", "index.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return HTMLResponse("Editor page not found", status_code=404)
 
 # =========================
 # Admin users page
@@ -130,17 +118,75 @@ def users_page(request: Request, db: Session = Depends(get_db)):
     if request.cookies.get("user") != "admin":
         return RedirectResponse("/login")
 
-    users = crud.get_all_users(db)
-    return templates.TemplateResponse(
-        "users.html",
-        {"request": request, "users": users}
-    )
+    # Return static HTML file
+    html_path = os.path.join("app", "static", "users.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return HTMLResponse("Users page not found", status_code=404)
 
 @app.get("/force-logout")
 def force_logout():
     response = RedirectResponse("/login")
     response.delete_cookie("user")
     return response
+
+# =========================
+# API Endpoints
+# =========================
+@app.get("/api/user")
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    username = request.cookies.get("user")
+    if not username:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    user = crud.get_user_by_username(db, username)
+    if not user:
+        return JSONResponse({"error": "User not found"}, status_code=404)
+    
+    return JSONResponse({
+        "username": user.username,
+        "id": user.id
+    })
+
+@app.get("/api/images")
+def get_user_images(request: Request, db: Session = Depends(get_db)):
+    username = request.cookies.get("user")
+    if not username:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    user = crud.get_user_by_username(db, username)
+    if not user:
+        return JSONResponse({"error": "User not found"}, status_code=404)
+    
+    images = crud.get_user_images(db, user.id)
+    images_data = [
+        {
+            "id": img.id,
+            "filename": img.filename,
+            "image_url": img.image_url,
+            "created_at": img.created_at.isoformat() if img.created_at else None
+        }
+        for img in images
+    ]
+    
+    return JSONResponse({"images": images_data})
+
+@app.get("/api/users")
+def get_all_users(request: Request, db: Session = Depends(get_db)):
+    username = request.cookies.get("user")
+    if not username or username != "admin":
+        return JSONResponse({"error": "Unauthorized - Admin only"}, status_code=403)
+    
+    users = crud.get_all_users(db)
+    users_data = [
+        {
+            "id": user.id,
+            "username": user.username
+        }
+        for user in users
+    ]
+    
+    return JSONResponse({"users": users_data})
 
 
 # =========================

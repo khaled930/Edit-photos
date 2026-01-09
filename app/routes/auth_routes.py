@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Request, Form, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.database import crud
-from fastapi.templating import Jinja2Templates
 from passlib.hash import bcrypt
+import os
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 # =========================
 # DB Dependency
@@ -24,13 +23,13 @@ def get_db():
 # =========================
 @router.get("/login")
 def login_page(request: Request):
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": None}
-    )
+    html_path = os.path.join("app", "static", "login.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "Login page not found"}, status_code=404)
 
 @router.post("/login")
-def login(
+async def login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
@@ -39,17 +38,12 @@ def login(
     user = crud.get_user_by_username(db, username)
 
     if not user or not bcrypt.verify(password, user.password):
-        return templates.TemplateResponse(
-            "login.html",
-            {
-                "request": request,
-                "error": "اسم المستخدم أو كلمة المرور غير صحيحة"
-            }
+        return JSONResponse(
+            {"error": "اسم المستخدم أو كلمة المرور غير صحيحة"},
+            status_code=401
         )
 
     response = RedirectResponse(url="/editor", status_code=302)
-
-    # 🔴 مهم جدًا
     response.set_cookie(
         key="user",
         value=username,
@@ -64,13 +58,13 @@ def login(
 # =========================
 @router.get("/register")
 def register_page(request: Request):
-    return templates.TemplateResponse(
-        "register.html",
-        {"request": request, "error": None}
-    )
+    html_path = os.path.join("app", "static", "register.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "Register page not found"}, status_code=404)
 
 @router.post("/register")
-def register(
+async def register(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
@@ -79,12 +73,9 @@ def register(
     existing_user = crud.get_user_by_username(db, username)
 
     if existing_user:
-        return templates.TemplateResponse(
-            "register.html",
-            {
-                "request": request,
-                "error": "اسم المستخدم موجود مسبقًا"
-            }
+        return JSONResponse(
+            {"error": "اسم المستخدم موجود مسبقًا"},
+            status_code=400
         )
 
     hashed_pw = bcrypt.hash(password)
@@ -92,8 +83,6 @@ def register(
 
     # تسجيل تلقائي بعد التسجيل
     response = RedirectResponse(url="/editor", status_code=302)
-
-    # 🔴 مهم جدًا
     response.set_cookie(
         key="user",
         value=username,
