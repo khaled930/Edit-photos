@@ -3,8 +3,11 @@ from fastapi.responses import RedirectResponse, FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.database import crud
-from passlib.hash import bcrypt
+from passlib.context import CryptContext
 import os
+
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter()
 
@@ -37,7 +40,7 @@ async def login(
 ):
     user = crud.get_user_by_username(db, username)
 
-    if not user or not bcrypt.verify(password, user.password):
+    if not user or not pwd_context.verify(password, user.password):
         return JSONResponse(
             {"error": "اسم المستخدم أو كلمة المرور غير صحيحة"},
             status_code=401
@@ -78,7 +81,7 @@ async def register(
             status_code=400
         )
 
-    hashed_pw = bcrypt.hash(password)
+    hashed_pw = pwd_context.hash(password)
     crud.create_user(db, username, hashed_pw)
 
     # تسجيل تلقائي بعد التسجيل

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
 import uvicorn
 import os
 
@@ -13,12 +14,42 @@ from app.database.db import engine, SessionLocal
 from app.database.models import Base
 from app.database import crud
 
-from passlib.hash import bcrypt
+from passlib.context import CryptContext
+
+# =========================
+# Password hashing
+# =========================
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# =========================
+# Create default admin (bcrypt)
+# =========================
+def create_default_admin():
+    db = SessionLocal()
+    try:
+        if not crud.get_user_by_username(db, "admin"):
+            hashed = pwd_context.hash("admin")
+            crud.create_user(db, "admin", hashed)
+    except Exception as e:
+        # Log error but don't crash the app
+        print(f"Error creating default admin: {e}")
+    finally:
+        db.close()
+
+# =========================
+# Lifespan events
+# =========================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    create_default_admin()
+    yield
+    # Shutdown (if needed)
 
 # =========================
 # App
 # =========================
-app = FastAPI(title="Image Editing Platform")
+app = FastAPI(title="Image Editing Platform", lifespan=lifespan)
 
 # =========================
 # Static files
@@ -38,19 +69,6 @@ def get_db():
     finally:
         db.close()
 
-# =========================
-# Create default admin (bcrypt)
-# =========================
-def create_default_admin():
-    db = SessionLocal()
-    try:
-        if not crud.get_user_by_username(db, "admin"):
-            hashed = bcrypt.hash("admin")
-            crud.create_user(db, "admin", hashed)
-    finally:
-        db.close()
-
-create_default_admin()
 
 # =========================
 # Auth Middleware
