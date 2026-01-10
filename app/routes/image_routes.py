@@ -111,14 +111,26 @@ def compress_image(
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
 
     input_path = "app/static" + image_url
+    
+    # Check if input file exists
+    if not os.path.exists(input_path):
+        return JSONResponse({"error": f"Image not found: {input_path}"}, status_code=404)
+    
     filename = os.path.basename(input_path)
 
     output_dir = "app/static/uploads/compressed"
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"compressed_{filename}")
 
-    stats = compress_jpeg(input_path, output_path, quality)
-    compressed_url = "/uploads/compressed/compressed_" + filename
+    try:
+        stats = compress_jpeg(input_path, output_path, quality)
+        # Verify file was created
+        if not os.path.exists(output_path):
+            return JSONResponse({"error": "Failed to create compressed file"}, status_code=500)
+        
+        compressed_url = "/uploads/compressed/compressed_" + filename
+    except Exception as e:
+        return JSONResponse({"error": f"Compression failed: {str(e)}"}, status_code=500)
 
     return JSONResponse({
         "edited_url": compressed_url,
@@ -259,14 +271,26 @@ async def api_compress(request: Request, data: EditRequest, db: Session = Depend
         return JSONResponse({"error": "quality is required"}, status_code=400)
     
     input_path = "app/static" + data.image_url
+    
+    # Check if input file exists
+    if not os.path.exists(input_path):
+        return JSONResponse({"error": f"Image not found: {input_path}"}, status_code=404)
+    
     filename = os.path.basename(input_path)
     
     output_dir = "app/static/uploads/compressed"
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"compressed_{filename}")
     
-    stats = compress_jpeg(input_path, output_path, data.quality)
-    compressed_url = "/uploads/compressed/compressed_" + filename
+    try:
+        stats = compress_jpeg(input_path, output_path, data.quality)
+        # Verify file was created
+        if not os.path.exists(output_path):
+            return JSONResponse({"error": "Failed to create compressed file"}, status_code=500)
+        
+        compressed_url = "/uploads/compressed/compressed_" + filename
+    except Exception as e:
+        return JSONResponse({"error": f"Compression failed: {str(e)}"}, status_code=500)
     
     return JSONResponse({
         "edited_url": compressed_url,

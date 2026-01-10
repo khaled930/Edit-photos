@@ -19,20 +19,26 @@ from passlib.context import CryptContext
 # =========================
 # Password hashing
 # =========================
+# Initialize password context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # =========================
 # Create default admin (bcrypt)
 # =========================
 def create_default_admin():
+    """Create default admin user if it doesn't exist"""
     db = SessionLocal()
     try:
         if not crud.get_user_by_username(db, "admin"):
+            # Use CryptContext to hash password
             hashed = pwd_context.hash("admin")
             crud.create_user(db, "admin", hashed)
+            print("Default admin user created successfully")
     except Exception as e:
         # Log error but don't crash the app
         print(f"Error creating default admin: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         db.close()
 
@@ -54,8 +60,12 @@ app = FastAPI(title="Image Editing Platform", lifespan=lifespan)
 # =========================
 # Static files
 # =========================
+# Mount static files - must be before routers
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-app.mount("/uploads", StaticFiles(directory="app/static/uploads"), name="uploads")
+
+# Mount uploads directory - this will serve files from app/static/uploads and subdirectories
+# Note: StaticFiles automatically handles subdirectories
+app.mount("/uploads", StaticFiles(directory="app/static/uploads", html=False), name="uploads")
 
 # =========================
 # Database
@@ -96,6 +106,7 @@ async def auth_middleware(request: Request, call_next):
 # =========================
 # Routers
 # =========================
+# Include routers after static files mounting
 app.include_router(auth_routes.router)
 app.include_router(image_routes.router)
 
