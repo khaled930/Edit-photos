@@ -5,9 +5,43 @@ from app.database.db import SessionLocal
 from app.database import crud
 from passlib.context import CryptContext
 import os
+import bcrypt as bcrypt_lib
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context - initialize with error handling
+try:
+    # Try to initialize with passlib first
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    # Test the context to ensure it works
+    _ = pwd_context.hash("test")
+    USE_PASSLIB = True
+except Exception as e:
+    print(f"Warning: Failed to initialize passlib bcrypt context: {e}")
+    # Fallback to direct bcrypt
+    USE_PASSLIB = False
+    print("Using direct bcrypt library instead")
+
+def hash_password(password: str) -> str:
+    """Hash password using available method"""
+    if USE_PASSLIB:
+        return pwd_context.hash(password)
+    else:
+        # Use bcrypt directly
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) > 72:
+            raise ValueError("password cannot be longer than 72 bytes")
+        salt = bcrypt_lib.gensalt()
+        hashed = bcrypt_lib.hashpw(password_bytes, salt)
+        return hashed.decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password using available method"""
+    if USE_PASSLIB:
+        return pwd_context.verify(password, hashed)
+    else:
+        # Use bcrypt directly
+        password_bytes = password.encode('utf-8')
+        hashed_bytes = hashed.encode('utf-8')
+        return bcrypt_lib.checkpw(password_bytes, hashed_bytes)
 
 router = APIRouter()
 
@@ -40,7 +74,7 @@ async def login(
 ):
     user = crud.get_user_by_username(db, username)
 
-    if not user or not pwd_context.verify(password, user.password):
+    if not user or not verify_password(password, user.password):
         return JSONResponse(
             {"error": "اسم المستخدم أو كلمة المرور غير صحيحة"},
             status_code=401
@@ -96,8 +130,25 @@ async def register(
             )
 
         # Hash password and create user
-        hashed_pw = pwd_context.hash(password)
-        crud.create_user(db, username.strip(), hashed_pw)
+        try:
+            # Ensure password is not too long for bcrypt (72 bytes max)
+            password_bytes = password.encode('utf-8')
+            if len(password_bytes) > 72:
+                return JSONResponse(
+                    {"error": "كلمة المرور طويلة جداً (الحد الأقصى 72 حرف)"},
+                    status_code=400
+                )
+            
+            hashed_pw = hash_password(password)
+            crud.create_user(db, username.strip(), hashed_pw)
+        except ValueError as e:
+            # Handle bcrypt-specific errors
+            if "password cannot be longer than 72 bytes" in str(e):
+                return JSONResponse(
+                    {"error": "كلمة المرور طويلة جداً (الحد الأقصى 72 حرف)"},
+                    status_code=400
+                )
+            raise
 
         # تسجيل تلقائي بعد التسجيل
         response = RedirectResponse(url="/editor", status_code=302)

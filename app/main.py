@@ -15,12 +15,36 @@ from app.database.models import Base
 from app.database import crud
 
 from passlib.context import CryptContext
+import bcrypt as bcrypt_lib
 
 # =========================
 # Password hashing
 # =========================
-# Initialize password context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Initialize password context with error handling
+try:
+    # Try to initialize with passlib first
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    # Test the context to ensure it works
+    _ = pwd_context.hash("test")
+    USE_PASSLIB = True
+except Exception as e:
+    print(f"Warning: Failed to initialize passlib bcrypt context: {e}")
+    # Fallback to direct bcrypt
+    USE_PASSLIB = False
+    print("Using direct bcrypt library instead")
+
+def hash_password(password: str) -> str:
+    """Hash password using available method"""
+    if USE_PASSLIB:
+        return pwd_context.hash(password)
+    else:
+        # Use bcrypt directly
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) > 72:
+            raise ValueError("password cannot be longer than 72 bytes")
+        salt = bcrypt_lib.gensalt()
+        hashed = bcrypt_lib.hashpw(password_bytes, salt)
+        return hashed.decode('utf-8')
 
 # =========================
 # Create default admin (bcrypt)
@@ -30,8 +54,8 @@ def create_default_admin():
     db = SessionLocal()
     try:
         if not crud.get_user_by_username(db, "admin"):
-            # Use CryptContext to hash password
-            hashed = pwd_context.hash("admin")
+            # Use hash_password function to hash password
+            hashed = hash_password("admin")
             crud.create_user(db, "admin", hashed)
             print("Default admin user created successfully")
     except Exception as e:
