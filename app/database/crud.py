@@ -12,25 +12,33 @@ def get_all_users(db: Session):
 
 def create_user(db: Session, username: str, password: str):
     # Password is already hashed with bcrypt before being passed here
-    user = User(username=username, password=password)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+    try:
+        user = User(username=username, password=password)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    except Exception as e:
+        db.rollback()
+        raise e
 
 # =========================
 # Images CRUD
 # =========================
 def create_image(db: Session, filename: str, image_url: str, user_id: int):
-    image = Image(
-        filename=filename,
-        image_url=image_url,
-        user_id=user_id
-    )
-    db.add(image)
-    db.commit()
-    db.refresh(image)
-    return image
+    try:
+        image = Image(
+            filename=filename,
+            image_url=image_url,
+            user_id=user_id
+        )
+        db.add(image)
+        db.commit()
+        db.refresh(image)
+        return image
+    except Exception as e:
+        db.rollback()
+        raise e
 
 def get_user_images(db: Session, user_id: int):
     return db.query(Image).filter(Image.user_id == user_id).all()

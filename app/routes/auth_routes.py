@@ -73,27 +73,51 @@ async def register(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    existing_user = crud.get_user_by_username(db, username)
+    try:
+        # Validate input
+        if not username or not username.strip():
+            return JSONResponse(
+                {"error": "اسم المستخدم مطلوب"},
+                status_code=400
+            )
+        
+        if not password or len(password) < 3:
+            return JSONResponse(
+                {"error": "كلمة المرور يجب أن تكون 3 أحرف على الأقل"},
+                status_code=400
+            )
 
-    if existing_user:
-        return JSONResponse(
-            {"error": "اسم المستخدم موجود مسبقًا"},
-            status_code=400
+        # Check if user exists
+        existing_user = crud.get_user_by_username(db, username)
+        if existing_user:
+            return JSONResponse(
+                {"error": "اسم المستخدم موجود مسبقًا"},
+                status_code=400
+            )
+
+        # Hash password and create user
+        hashed_pw = pwd_context.hash(password)
+        crud.create_user(db, username.strip(), hashed_pw)
+
+        # تسجيل تلقائي بعد التسجيل
+        response = RedirectResponse(url="/editor", status_code=302)
+        response.set_cookie(
+            key="user",
+            value=username.strip(),
+            httponly=True,
+            path="/"
         )
 
-    hashed_pw = pwd_context.hash(password)
-    crud.create_user(db, username, hashed_pw)
-
-    # تسجيل تلقائي بعد التسجيل
-    response = RedirectResponse(url="/editor", status_code=302)
-    response.set_cookie(
-        key="user",
-        value=username,
-        httponly=True,
-        path="/"
-    )
-
-    return response
+        return response
+    except Exception as e:
+        # Log error and return user-friendly message
+        print(f"Error creating user: {e}")
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            {"error": "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى."},
+            status_code=500
+        )
 
 # =========================
 # تسجيل الخروج

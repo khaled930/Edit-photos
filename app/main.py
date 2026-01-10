@@ -70,7 +70,14 @@ app.mount("/uploads", StaticFiles(directory="app/static/uploads", html=False), n
 # =========================
 # Database
 # =========================
-Base.metadata.create_all(bind=engine)
+# Create database tables
+try:
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully")
+except Exception as e:
+    print(f"Error creating database tables: {e}")
+    import traceback
+    traceback.print_exc()
 
 def get_db():
     db = SessionLocal()
